@@ -1,50 +1,28 @@
 package com.github.padster.guiceserver;
 
+import com.github.padster.guiceserver.Annotations.Bindings;
 import com.github.padster.guiceserver.handlers.Handler;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import com.google.inject.AbstractModule;
-import com.google.inject.BindingAnnotation;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 
 import javax.inject.Provider;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Override to provide all the path -> handler bindings.
  */
-public abstract class BindingModule extends AbstractModule {
-  @Retention(RetentionPolicy.RUNTIME)
-  @BindingAnnotation
-  public @interface Bindings {}
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @BindingAnnotation
-  public @interface ServerPort {}
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @BindingAnnotation
-  public @interface SequebotPort {}
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @BindingAnnotation
-  public @interface BackupFilePath {}
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @BindingAnnotation
-  public @interface CurrentUser {}
-
+public class BaseBindingModule extends AbstractModule {
   final String DATA_PATH = "/_";
 
 
   // Override these two!
-  abstract void bindPageHandlers(); // handlers for HTML requests..
-  abstract void bindDataHandlers(); // handlers for JSON requests.
+  void bindPageHandlers(){} // handlers for HTML requests..
+  void bindDataHandlers(){} // handlers for JSON requests.
 
 
   public final Map<String, Provider<? extends Handler>> bindings = new HashMap<>();

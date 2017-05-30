@@ -1,6 +1,6 @@
 package com.github.padster.guiceserver.handlers;
 
-import com.github.padster.guiceserver.BindingModule.Bindings;
+import com.github.padster.guiceserver.Annotations.Bindings;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.CSVResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.FileDownloadResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.JsonResponse;
