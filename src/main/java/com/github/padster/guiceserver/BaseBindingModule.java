@@ -16,13 +16,13 @@ import java.util.Map;
 /**
  * Override to provide all the path -> handler bindings.
  */
-public class BaseBindingModule extends AbstractModule {
+public abstract class BaseBindingModule extends AbstractModule {
   final String DATA_PATH = "/_";
 
 
   // Override these two!
-  void bindPageHandlers(){} // handlers for HTML requests..
-  void bindDataHandlers(){} // handlers for JSON requests.
+  protected abstract void bindPageHandlers(); // handlers for HTML requests..
+  protected abstract void bindDataHandlers(); // handlers for JSON requests.
 
 
   public final Map<String, Provider<? extends Handler>> bindings = new HashMap<>();
