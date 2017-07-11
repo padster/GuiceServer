@@ -5,6 +5,7 @@ import com.github.padster.guiceserver.handlers.RouteHandlerResponses.CSVResponse
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.FileDownloadResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.JsonResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.MustacheResponse;
+import com.github.padster.guiceserver.handlers.RouteHandlerResponses.RedirectResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.StreamResponse;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.TextResponse;
 
@@ -72,6 +73,8 @@ public class RouteHandler implements HttpHandler {
         this.handleStreamResponse(exchange, (StreamResponse) result);
       } else if (result instanceof MustacheResponse) {
         this.handleMustacheResponse(exchange, (MustacheResponse) result);
+      } else if (result instanceof RedirectResponse) {
+        this.handleRedirectResponse(exchange, (RedirectResponse) result);
       } else if (result instanceof CSVResponse) {
         this.handleCsvResponse(exchange, (CSVResponse) result);
       } else if (result instanceof FileDownloadResponse) {
@@ -156,6 +159,12 @@ public class RouteHandler implements HttpHandler {
     exchange.sendResponseHeaders(200, writer.getBuffer().length());
     exchange.getResponseBody().write(writer.getBuffer().toString().getBytes());
     writer.close();
+  }
+
+  void handleRedirectResponse(HttpExchange exchange, RedirectResponse response) throws IOException {
+    exchange.getResponseHeaders().set("Location", response.location.toString());
+    int code = response.isTemporary ? 302 : 303;
+    exchange.sendResponseHeaders(code, -1);
   }
 
   void handleCsvResponse(HttpExchange exchange, CSVResponse response) throws IOException {

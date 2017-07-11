@@ -1,4 +1,6 @@
 target/
+.idea/
+guice-server.iml
 
 # Compiled class file
 *.class

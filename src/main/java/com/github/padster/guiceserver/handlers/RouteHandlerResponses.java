@@ -1,9 +1,20 @@
 package com.github.padster.guiceserver.handlers;
 
 import java.io.InputStream;
+import java.net.URI;
 
 /** Types of responses the RouteHandler can format. */
 public final class RouteHandlerResponses {
+  /** Redirect to a new location. */
+  public static class RedirectResponse {
+    public final URI location;
+    public final boolean isTemporary;
+    public RedirectResponse(URI location, boolean isTemporary) {
+      this.location = location;
+      this.isTemporary = isTemporary;
+    }
+  }
+
   /** Content of a text/plain result. */
   public static class TextResponse {
     public final String text;
