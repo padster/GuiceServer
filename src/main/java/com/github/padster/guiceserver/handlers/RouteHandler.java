@@ -64,6 +64,8 @@ public class RouteHandler implements HttpHandler {
       ParsedHandler parsedHandler = parseHandler(pathParts);
       Object result = parsedHandler.handler.handle(parsedHandler.pathParams, exchange);
       Preconditions.checkState(result != null, "Can't have a null response.");
+      System.out.println("Handling..." + result.getClass().getName());
+
 
       if (result instanceof TextResponse) {
         this.handleTextResponse(exchange, (TextResponse) result);
@@ -164,6 +166,7 @@ public class RouteHandler implements HttpHandler {
   void handleRedirectResponse(HttpExchange exchange, RedirectResponse response) throws IOException {
     exchange.getResponseHeaders().set("Location", response.location.toString());
     int code = response.isTemporary ? 302 : 303;
+    System.out.println("Redirecting " + code + " to " + response.location.toString());
     exchange.sendResponseHeaders(code, -1);
   }
 
