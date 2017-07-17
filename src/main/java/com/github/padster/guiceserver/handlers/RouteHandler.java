@@ -1,15 +1,8 @@
 package com.github.padster.guiceserver.handlers;
 
-import com.github.padster.guiceserver.Annotations.Bindings;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.CSVResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.FileDownloadResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.JsonResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.MustacheResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.RedirectResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.StreamResponse;
-import com.github.padster.guiceserver.handlers.RouteHandlerResponses.TextResponse;
-
 import com.github.mustachejava.MustacheFactory;
+import com.github.padster.guiceserver.Annotations.Bindings;
+import com.github.padster.guiceserver.handlers.RouteHandlerResponses.*;
 import com.google.common.base.Preconditions;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -17,7 +10,9 @@ import org.apache.commons.io.IOUtils;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,8 +59,6 @@ public class RouteHandler implements HttpHandler {
       ParsedHandler parsedHandler = parseHandler(pathParts);
       Object result = parsedHandler.handler.handle(parsedHandler.pathParams, exchange);
       Preconditions.checkState(result != null, "Can't have a null response.");
-      System.out.println("Handling..." + result.getClass().getName());
-
 
       if (result instanceof TextResponse) {
         this.handleTextResponse(exchange, (TextResponse) result);
@@ -166,7 +159,6 @@ public class RouteHandler implements HttpHandler {
   void handleRedirectResponse(HttpExchange exchange, RedirectResponse response) throws IOException {
     exchange.getResponseHeaders().set("Location", response.location.toString());
     int code = response.isTemporary ? 302 : 303;
-    System.out.println("Redirecting " + code + " to " + response.location.toString());
     exchange.sendResponseHeaders(code, -1);
   }
 
@@ -175,8 +167,9 @@ public class RouteHandler implements HttpHandler {
     exchange.getResponseHeaders().set("Content-Type", "text/csv");
     exchange.getResponseHeaders().set("Content-Disposition", disposition);
 
-    exchange.sendResponseHeaders(200, response.csvContent.length());
-    exchange.getResponseBody().write(response.csvContent.getBytes());
+    byte[] bytes = response.csvContent.getBytes("UTF-8");
+    exchange.sendResponseHeaders(200, bytes.length);
+    exchange.getResponseBody().write(bytes);
   }
 
   void handleFileDownloadResponse(HttpExchange exchange, FileDownloadResponse response) throws IOException {
