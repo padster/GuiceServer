@@ -1,22 +1,17 @@
 package com.github.padster.guiceserver.handlers;
 
 import com.github.mustachejava.MustacheFactory;
-import com.github.padster.guiceserver.Annotations.Bindings;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.*;
+import com.github.padster.guiceserver.handlers.RouteParser.ParsedHandler;
 import com.google.common.base.Preconditions;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.io.IOUtils;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Logic for finding which handler to route to, and converting its results to an HttpResponse.
@@ -25,38 +20,21 @@ import java.util.Map;
 public class RouteHandler implements HttpHandler {
   public static class UnauthorizedException extends RuntimeException {}
 
-  public static class ParsedHandler {
-    public final Handler handler;
-    public final Map<String, String> pathParams;
-    public ParsedHandler(Handler handler, Map<String, String> pathParams) {
-      this.handler = handler;
-      this.pathParams = pathParams;
-    }
-  }
-
-  private final List<String[]> pathRules = new ArrayList<>();
-  private final List<Provider<? extends Handler>> pathHandlers = new ArrayList<>();
+  private final RouteParser routeParser;
   private final MustacheFactory mustacheFactory;
 
-  @Inject public RouteHandler(MustacheFactory mustacheFactory,
-      @Bindings Map<String, Provider<? extends Handler>> handlerMap) {
-    handlerMap.forEach((path, handler) -> {
-      Preconditions.checkArgument(path.startsWith("/"), "Handler paths must start with /");
-      pathRules.add(path.substring(1).split("/"));
-      pathHandlers.add(handler);
-    });
+  @Inject public RouteHandler(
+      RouteParser routeParser, MustacheFactory mustacheFactory
+  ) {
+    this.routeParser = routeParser;
     this.mustacheFactory = mustacheFactory;
   }
 
   @Override public void handle(HttpExchange exchange) throws IOException {
     System.out.println("Handle: " + exchange.getRequestURI().getPath());
 
-    Preconditions.checkArgument(
-        exchange.getRequestURI().getPath().startsWith("/"), "Path should start with /");
-    String[] pathParts = exchange.getRequestURI().getPath().substring(1).split("/");
-
     try {
-      ParsedHandler parsedHandler = parseHandler(pathParts);
+      ParsedHandler parsedHandler = this.routeParser.parseHandler(exchange);
       Object result = parsedHandler.handler.handle(parsedHandler.pathParams, exchange);
       Preconditions.checkState(result != null, "Can't have a null response.");
 
@@ -89,40 +67,6 @@ public class RouteHandler implements HttpHandler {
       handleServerException(exchange, e);
     }
     exchange.close();
-  }
-
-  public ParsedHandler parseHandler(String[] parts) throws FileNotFoundException {
-    for (int i = 0; i < pathRules.size(); i++) {
-      Map<String, String> paramsMatched = match(parts, pathRules.get(i));
-      if (paramsMatched != null) {
-        return new ParsedHandler(pathHandlers.get(i).get(), paramsMatched);
-      }
-    }
-    throw new FileNotFoundException("No matching handler for /" + String.join("/", parts));
-  }
-
-  private static Map<String, String> match(String[] parts, String[] pattern) {
-    Map<String, String> result = new HashMap<>();
-    for (int i = 0; i < parts.length; i++) {
-      if (pattern.length <= i) {
-        return null;
-      } else if (pattern[i].equals("*")) {
-        continue;
-      } else if (pattern[i].equals("**")) {
-        Preconditions.checkArgument(i == pattern.length - 1, "** can only appear at the end.");
-        break;
-      } else if (pattern[i].startsWith(":")) {
-        result.put(pattern[i].substring(1), parts[i]);
-      } else if (pattern[i].equals(parts[i])) {
-        continue;
-      } else {
-        return null;
-      }
-    }
-    if (pattern.length > parts.length) {
-      return null;
-    }
-    return result;
   }
 
   void handleTextResponse(HttpExchange exchange, TextResponse response) throws IOException {
