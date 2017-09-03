@@ -1,5 +1,6 @@
 package com.github.padster.guiceserver.handlers;
 
+import com.google.common.base.Joiner;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;
@@ -50,5 +51,10 @@ public class PostParser {
       throw new IllegalArgumentException();
     }
     return params.get(key).get(0);
+  }
+
+  /** Utility to that returns true if a checkbox value is included. */
+  public static boolean parseCheckbox(Map<String, List<String>> params, String key) {
+    return params.containsKey(key) && params.get(key).size() == 1 && "on".equals(params.get(key).get(0));
   }
 }

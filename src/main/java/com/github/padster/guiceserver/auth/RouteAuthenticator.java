@@ -29,14 +29,21 @@ public class RouteAuthenticator extends Authenticator {
     this.routeParser = routeParser;
   }
 
+  /** App says user logged in, so give the user an authenticated token. */
   public void handleLogin(HttpExchange exchange, String token) {
     HttpCookie cookie = new HttpCookie(COOKIE_NAME, token);
     exchange.getResponseHeaders().set("Set-Cookie", cookie.toString());
   }
 
-  @Override public Authenticator.Result authenticate(HttpExchange exchange) {
-    System.out.println("Authenticating: " + exchange.getRequestURI().getPath());
+  /** App says user logged out, so clear their token. */
+  public void handleLogout(HttpExchange exchange) {
+    HttpCookie cookie = new HttpCookie(COOKIE_NAME, null);
+    // For some reason, HttpCookie doesn't support this!?
+    String expired = cookie.toString() + ";Max-Age=0";
+    exchange.getResponseHeaders().set("Set-Cookie", expired);
+  }
 
+  @Override public Authenticator.Result authenticate(HttpExchange exchange) {
     Handler handler = null;
     try {
       handler = this.routeParser.parseHandler(exchange).handler;
