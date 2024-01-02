@@ -9,7 +9,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -6,7 +6,7 @@ import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpCookie;

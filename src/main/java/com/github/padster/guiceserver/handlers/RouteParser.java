@@ -4,8 +4,8 @@ import com.github.padster.guiceserver.Annotations;
 import com.google.common.base.Preconditions;
 import com.sun.net.httpserver.HttpExchange;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;

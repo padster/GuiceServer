@@ -3,7 +3,7 @@ package com.github.padster.guiceserver.json;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * Provide mappings to and from JSON for a particular class, using Gson.

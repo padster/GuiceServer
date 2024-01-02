@@ -8,7 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.io.IOUtils;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
