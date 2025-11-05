@@ -1,9 +1,12 @@
 package com.github.padster.guiceserver.handlers;
 
 import com.github.mustachejava.MustacheFactory;
+import com.github.padster.guiceserver.HttpExchangeProvider;
+import com.github.padster.guiceserver.RequestScope;
 import com.github.padster.guiceserver.handlers.RouteHandlerResponses.*;
 import com.github.padster.guiceserver.handlers.RouteParser.ParsedHandler;
 import com.google.common.base.Preconditions;
+import com.google.inject.Injector;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.io.IOUtils;
@@ -20,20 +23,29 @@ import java.io.StringWriter;
 public class RouteHandler implements HttpHandler {
   public static class UnauthorizedException extends RuntimeException {}
 
+  private final Injector injector;
   private final RouteParser routeParser;
   private final MustacheFactory mustacheFactory;
 
   @Inject public RouteHandler(
-      RouteParser routeParser, MustacheFactory mustacheFactory
+    Injector injector,
+    RouteParser routeParser, 
+    MustacheFactory mustacheFactory
   ) {
+    this.injector = injector;
     this.routeParser = routeParser;
     this.mustacheFactory = mustacheFactory;
   }
 
   @Override public void handle(HttpExchange exchange) throws IOException {
-    System.out.println("Handle: " + exchange.getRequestURI().getPath());
+    RequestScope.enter();
+    // Print the URL and method being requested:
+    System.out.println(exchange.getRequestMethod() + " - " + exchange.getRequestURI());
 
     try {
+      HttpExchangeProvider provider = injector.getInstance(HttpExchangeProvider.class);
+      provider.set(exchange);
+
       ParsedHandler parsedHandler = this.routeParser.parseHandler(exchange);
       Object result = parsedHandler.handler.handle(parsedHandler.pathParams, exchange);
       Preconditions.checkState(result != null, "Can't have a null response.");
@@ -65,8 +77,10 @@ public class RouteHandler implements HttpHandler {
       handleBadArguments(exchange);
     } catch (Exception e) {
       handleServerException(exchange, e);
+    } finally {
+      RequestScope.exit();
+      exchange.close();
     }
-    exchange.close();
   }
 
   void handleTextResponse(HttpExchange exchange, TextResponse response) throws IOException {
@@ -75,11 +89,9 @@ public class RouteHandler implements HttpHandler {
   }
 
   void handleJsonResponse(HttpExchange exchange, JsonResponse response) throws IOException {
+    // TODO - fix java.io.IOException: Broken pipe
+    // at jdk.httpserver/sun.net.httpserver.PlaceholderOutputStream.write(ExchangeImpl.java:459)
     // HACK - automate this properly.
-    exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "content-type");
-    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "http://localhost:3000");
-    exchange.getResponseHeaders().set("Content-Type", "application/json");
     exchange.sendResponseHeaders(200, response.json.length());
     exchange.getResponseBody().write(response.json.getBytes());
   }

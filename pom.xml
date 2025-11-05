@@ -4,7 +4,7 @@
 
   <groupId>com.github.padster</groupId>
   <artifactId>guice-server</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Simple Java Server using Guice</name>
@@ -14,14 +14,14 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.13.0</version>
+      <version>2.16.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.5</version>
+      <version>1.6.0</version>
     </dependency>
   </dependencies>
 

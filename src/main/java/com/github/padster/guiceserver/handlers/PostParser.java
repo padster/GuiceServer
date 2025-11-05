@@ -1,6 +1,5 @@
 package com.github.padster.guiceserver.handlers;
 
-import com.google.common.base.Joiner;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;

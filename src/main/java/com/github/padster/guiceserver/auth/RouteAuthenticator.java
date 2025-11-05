@@ -32,14 +32,16 @@ public class RouteAuthenticator extends Authenticator {
   /** App says user logged in, so give the user an authenticated token. */
   public void handleLogin(HttpExchange exchange, String token) {
     HttpCookie cookie = new HttpCookie(COOKIE_NAME, token);
+    cookie.setPath("/");
+    cookie.setHttpOnly(true);
     exchange.getResponseHeaders().set("Set-Cookie", cookie.toString());
   }
 
   /** App says user logged out, so clear their token. */
   public void handleLogout(HttpExchange exchange) {
-    HttpCookie cookie = new HttpCookie(COOKIE_NAME, null);
+    HttpCookie cookie = new HttpCookie(COOKIE_NAME, "");
     // For some reason, HttpCookie doesn't support this!?
-    String expired = cookie.toString() + ";Max-Age=0";
+    String expired = cookie.toString() + "; Max-Age=0";
     exchange.getResponseHeaders().set("Set-Cookie", expired);
   }
 
@@ -62,6 +64,11 @@ public class RouteAuthenticator extends Authenticator {
 
   // Handles Authentication verification for this request.
   private Authenticator.Result handleAuth(HttpExchange exchange, boolean loginRequired) {
+    // Handle preflight request - can't redirect, and doesn't need auth.
+    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+      return new Authenticator.Success(null);
+    }
+
     // Read the Cookie header, looking for Guice Server authentication.
     String cookieStr = exchange.getRequestHeaders().getFirst("Cookie");
     HttpCookie cookie = getLoginCookie(cookieStr);
@@ -82,6 +89,7 @@ public class RouteAuthenticator extends Authenticator {
         // User permission not allowed.
         return sendFail(exchange, 404);
       } else {
+        System.out.println("Principal = " + principal.getUsername());
         return new Authenticator.Success(principal);
       }
     }
@@ -89,6 +97,14 @@ public class RouteAuthenticator extends Authenticator {
 
   /** @return the first Cookie associated to GuiceServer login, if found. */
   private HttpCookie getLoginCookie(String header) {
+    // Remove "g_state={"i_l":0};" from within cookie header if it's there:
+    String needle = "g_state={\"i_l\":0};";
+    if (header != null && header.contains(needle)) {
+      // TODO: See whether any version of HttpCookie.parse handles this okay
+      header = header.replace(needle, "");
+      // Example: 'g_state={"i_l":0}; _gsID=abcde'
+    }
+    
     if (header != null) {
       for (HttpCookie cookie : HttpCookie.parse(header)) {
         if (COOKIE_NAME.equals(cookie.getName())) {
