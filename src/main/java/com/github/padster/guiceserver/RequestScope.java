@@ -36,7 +36,15 @@ public class RequestScope implements Scope {
     return () -> {
       Map<Key<?>, Object> scopedObjects = getScopedObjectMap(key);
 
-      T current = (T) scopedObjects.get(key);
+      Object obj = scopedObjects.get(key);
+      T current;
+      try {
+        @SuppressWarnings("unchecked")
+        T temp = (T) obj;
+        current = temp;
+      } catch (ClassCastException e) {
+        throw new IllegalStateException("Stored object for key " + key + " cannot be cast to expected type", e);
+      }
       if (current == null && !scopedObjects.containsKey(key)) {
         current = creator.get();
         scopedObjects.put(key, current);

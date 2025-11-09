@@ -40,7 +40,6 @@ public class RouteParser {
     Preconditions.checkArgument(
         exchange.getRequestURI().getPath().startsWith("/"), "Path should start with /");
     String[] parts = exchange.getRequestURI().getPath().substring(1).split("/");
-
     for (int i = 0; i < pathRules.size(); i++) {
       Map<String, String> paramsMatched = match(parts, pathRules.get(i));
       if (paramsMatched != null) {

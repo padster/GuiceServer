@@ -43,22 +43,24 @@
       <artifactId>compiler</artifactId>
       <version>0.9.10</version>
     </dependency>
-
-    <!-- https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload -->
+    <!-- No longer needed: https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
       <version>1.6.0</version>
-    </dependency>
+    </dependency> 
+    -->
   </dependencies>
 
   <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
+
     <plugins>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
+        <version>3.8.1</version>
         <configuration> <!-- Compile java 7 compatible bytecode -->
           <source>17</source>
           <target>17</target>

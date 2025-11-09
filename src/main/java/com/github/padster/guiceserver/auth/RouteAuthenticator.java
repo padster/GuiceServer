@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.URI;
+import java.util.List;
 
 /**
  * GuiceServer authentication system.
@@ -47,6 +48,7 @@ public class RouteAuthenticator extends Authenticator {
 
   @Override public Authenticator.Result authenticate(HttpExchange exchange) {
     Handler handler = null;
+    System.out.println("AUTHENTICATE");
     try {
       handler = this.routeParser.parseHandler(exchange).handler;
     } catch (FileNotFoundException e) {
@@ -54,11 +56,13 @@ public class RouteAuthenticator extends Authenticator {
     }
     if (handler == null) {
       // No handler, so safe to skip
+      System.out.println(">> No handler found, skipping auth");
       return new Authenticator.Success(null);
     }
 
     boolean loginRequired =
         (handler.getClass().getAnnotation(AuthAnnotations.LoginRequired.class) != null);
+    System.out.println(">> Handler requires login: " + loginRequired);
     return handleAuth(exchange, loginRequired);
   }
 
@@ -97,21 +101,30 @@ public class RouteAuthenticator extends Authenticator {
 
   /** @return the first Cookie associated to GuiceServer login, if found. */
   private HttpCookie getLoginCookie(String header) {
-    // Remove "g_state={"i_l":0};" from within cookie header if it's there:
-    String needle = "g_state={\"i_l\":0};";
-    if (header != null && header.contains(needle)) {
-      // TODO: See whether any version of HttpCookie.parse handles this okay
-      header = header.replace(needle, "");
-      // Example: 'g_state={"i_l":0}; _gsID=abcde'
-    }
-    
+    // Remove "g_state={...};" from within cookie header if it's there:
+    System.out.println("Cookie before g_state removal: " + header);
     if (header != null) {
-      for (HttpCookie cookie : HttpCookie.parse(header)) {
+      // Use regex to match and remove the entire g_state block
+      header = header.replaceAll("g_state=\\{[^}]*\\};?\\s*", "");
+      // Example: 'g_state={"i_l":0,"i_ll":1762714440988}; _gsID=abcde' -> ' _gsID=abcde'
+    }
+    System.out.println("Cookie after g_state removal: " + header);
+
+    if (header == null) {
+      return null;
+    }
+
+    try {
+      List<HttpCookie> cookies = HttpCookie.parse(header);
+      for (HttpCookie cookie : cookies) {
         if (COOKIE_NAME.equals(cookie.getName())) {
           return cookie;
         }
       }
+    } catch (Exception e) {
+      System.out.println("Error parsing cookies: " + e.getMessage());
     }
+  
     return null;
   }
 

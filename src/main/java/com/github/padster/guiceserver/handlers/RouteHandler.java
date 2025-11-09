@@ -73,8 +73,9 @@ public class RouteHandler implements HttpHandler {
       handleBadMethodException(exchange);
     } catch (UnauthorizedException e) {
       handleUnauthorized(exchange);
-    } catch (IllegalArgumentException e) {
-      handleBadArguments(exchange);
+    // } catch (IllegalArgumentException e) { // Disable, these are also 50xs
+    //   handleBadArguments(exchange);
+    // } 
     } catch (Exception e) {
       handleServerException(exchange, e);
     } finally {
@@ -137,9 +138,9 @@ public class RouteHandler implements HttpHandler {
     IOUtils.copy(response.stream, exchange.getResponseBody());
   }
 
-  void handleBadArguments(HttpExchange exchange) throws IOException {
-    exchange.sendResponseHeaders(400, 0);
-  }
+  // void handleBadArguments(HttpExchange exchange) throws IOException {
+  //   exchange.sendResponseHeaders(400, 0);
+  // }
 
   void handleUnauthorized(HttpExchange exchange) throws IOException {
     exchange.sendResponseHeaders(401, 0);

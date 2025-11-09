@@ -18,13 +18,15 @@ public class PostParser {
 
   /** @return Post body from an exchange, as a String. */
   public static String bodyAsString(HttpExchange exchange) throws IOException {
-    return new BufferedReader(
-        new InputStreamReader(exchange.getRequestBody(), ENCODING)
-    ).readLine();
+    try (BufferedReader reader = new BufferedReader(
+        new InputStreamReader(exchange.getRequestBody(), ENCODING))) {
+      return reader.readLine();
+    }
   }
 
   /** @return Mapping of post parameter name to values attached to it. */
   public static Map<String, List<String>> bodyAsParams(HttpExchange exchange) throws IOException {
+    System.out.println("Parsing POST body for params");
     Map<String, List<String>> params = new HashMap<>();
 
     // For each value pair... (tokenized by '&')
@@ -38,6 +40,7 @@ public class PostParser {
         name = URLDecoder.decode(def.substring(0, ix), ENCODING);
         value = URLDecoder.decode(def.substring(ix + 1), ENCODING);
       }
+      System.out.println("  Param: " + name + " => " + value);
       // And add to map
       params.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
     }
