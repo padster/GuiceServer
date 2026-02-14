@@ -106,7 +106,7 @@ public class RouteAuthenticator extends Authenticator {
    * @param header the cookie header string
    * @return header with g_state parameter removed
    */
-  private String removeGStateParameter(String header) {
+  String removeGStateParameter(String header) {
     int startIndex = header.indexOf("g_state=");
     if (startIndex == -1) {
       return header;
