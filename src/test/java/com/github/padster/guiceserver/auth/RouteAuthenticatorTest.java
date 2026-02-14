@@ -60,4 +60,13 @@ public class RouteAuthenticatorTest {
         String result = authenticator.removeGStateParameter(input);
         assertEquals(expected, result);
     }
+
+    @Test
+    public void testGStateRemoval_WithCookiesBeforeAndAfter() {
+        // Test with cookies before and after g_state to ensure only g_state is removed
+        String input = "_gx=test; g_state={\"i_l\":0,\"i_ll\":1771047714245}; _gsID=xyz";
+        String expected = "_gx=test;  _gsID=xyz";
+        String result = authenticator.removeGStateParameter(input);
+        assertEquals(expected, result);
+    }
 }
