@@ -99,13 +99,57 @@ public class RouteAuthenticator extends Authenticator {
     }
   }
 
+  /**
+   * Remove g_state parameter from cookie header string.
+   * Handles nested JSON objects by properly counting braces.
+   * @param header the cookie header string
+   * @return header with g_state parameter removed
+   */
+  private String removeGStateParameter(String header) {
+    int startIndex = header.indexOf("g_state=");
+    if (startIndex == -1) {
+      return header;
+    }
+    
+    // Find the opening brace of the JSON object
+    int braceStart = header.indexOf("{", startIndex);
+    if (braceStart == -1) {
+      return header;
+    }
+    
+    // Count braces to find the matching closing brace
+    int braceCount = 0;
+    int i = braceStart;
+    while (i < header.length()) {
+      char c = header.charAt(i);
+      if (c == '{') {
+        braceCount++;
+      } else if (c == '}') {
+        braceCount--;
+        if (braceCount == 0) {
+          // Found matching closing brace
+          // Check if followed by semicolon
+          int endIndex = i + 1;
+          if (endIndex < header.length() && header.charAt(endIndex) == ';') {
+            endIndex++;
+          }
+          // Remove the g_state parameter (keeping any trailing whitespace)
+          return header.substring(0, startIndex) + header.substring(endIndex);
+        }
+      }
+      i++;
+    }
+    
+    // If we couldn't find matching braces, return original
+    return header;
+  }
+
   /** @return the first Cookie associated to GuiceServer login, if found. */
   private HttpCookie getLoginCookie(String header) {
     // Remove "g_state={...};" from within cookie header if it's there:
     System.out.println("Cookie before g_state removal: " + header);
     if (header != null) {
-      // Use regex to match and remove the entire g_state block
-      header = header.replaceAll("g_state=\\{[^}]*\\};?\\s*", "");
+      header = removeGStateParameter(header);
       // Example: 'g_state={"i_l":0,"i_ll":1762714440988}; _gsID=abcde' -> ' _gsID=abcde'
     }
     System.out.println("Cookie after g_state removal: " + header);
